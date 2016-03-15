@@ -25,4 +25,8 @@ class ToolsBinary {
         assert 0 == process.exitValue()
         return toolsSource.path+"/busybox"
     }
+
+    String getHash(){
+        return Utils.calcHash(toolsSource.getHash())
+    }
 }

@@ -17,14 +17,25 @@ class KernelBinary {
         assert kernelConfig
     }
 
-    String getBinary() {
+    File getArtifact() {
+        File artifact = new File("../artifacts/"+getHash()+".bzImage")
+        if(artifact.exists()){
+            return artifact;
+        }
+
         Path src = Paths.get(kernelConfig.path)
         Path dst = Paths.get(kernelSource.path+"/.config")
         Files.copy(src, dst, REPLACE_EXISTING)
 
+        //ToDo: implement status reporting
         Process process = new ProcessBuilder("make", "-j9").directory(new File(kernelSource.path)).start();
         process.waitFor()
         assert 0 == process.exitValue()
-        return kernelSource.path+"/arch/x86_64/boot/bzImage"
+        Files.copy(Paths.get(kernelSource.path+"/arch/x86_64/boot/bzImage"), Paths.get(artifact.path), REPLACE_EXISTING)
+        return artifact
+    }
+
+    String getHash(){
+        return Utils.calcHash(kernelSource.getHash()+kernelConfig.getHash())
     }
 }

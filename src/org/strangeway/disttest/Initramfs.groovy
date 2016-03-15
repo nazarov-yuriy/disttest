@@ -4,11 +4,16 @@ import org.apache.commons.compress.archivers.cpio.CpioArchiveEntry
 import org.apache.commons.compress.archivers.cpio.CpioArchiveOutputStream
 import org.apache.commons.compress.archivers.cpio.CpioConstants
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream
+import org.apache.commons.compress.compressors.gzip.GzipParameters
+
+import java.util.zip.Deflater
 
 class Initramfs {
     ToolsBinary toolsBinary
+    String testScriptPath
 
-    Initramfs(){
+    Initramfs(String testScript) {
+        testScriptPath = "../testScripts/"+testScript
         toolsBinary = new ToolsBinary("busybox-1.24.1")
     }
 
@@ -28,7 +33,7 @@ class Initramfs {
         archive.closeArchiveEntry()
     }
 
-    private static void addFile(CpioArchiveOutputStream archive, String path, byte[] contents){
+    private static void addFile(CpioArchiveOutputStream archive, String path, byte[] contents) {
         CpioArchiveEntry entry = new CpioArchiveEntry(path)
         entry.setSize(contents.length);
         entry.setMode(CpioConstants.C_ISREG | CpioConstants.C_IXUSR | CpioConstants.C_IRUSR);
@@ -46,11 +51,18 @@ class Initramfs {
         archive.closeArchiveEntry()
     }
 
-    String getInitramfs(){
-        GzipCompressorOutputStream gz = new GzipCompressorOutputStream( new FileOutputStream(new File("../initramfs.cpio.gz")) )
+    File getArtifact() {
+        File artifact = new File("../artifacts/"+getHash()+".cpio.gz")
+        if(artifact.exists()){
+            return artifact;
+        }
+
+        GzipParameters gzipParameters = new GzipParameters()
+        gzipParameters.setCompressionLevel(Deflater.BEST_SPEED)
+        GzipCompressorOutputStream gz = new GzipCompressorOutputStream(new FileOutputStream(artifact), gzipParameters)
         CpioArchiveOutputStream cpio = new CpioArchiveOutputStream(gz);
-        for( dir in ['bin', 'dev', 'etc', 'proc', 'sys']) {
-            addDir(cpio, dir);
+        for (dir in ['bin', 'dev', 'etc', 'proc', 'sys']) {
+            addDir(cpio, dir)
         }
         addCharDev(cpio, 'dev/console', 5, 1)
         addCharDev(cpio, 'dev/null', 1, 3)
@@ -59,10 +71,14 @@ class Initramfs {
         addFile(cpio, 'bin/busybox', new File(toolsBinary.getBinary()).bytes)
         addSymlink(cpio, 'bin/sh', 'busybox')
         addSymlink(cpio, 'init', 'bin/busybox')
-        addFile(cpio, 'etc/rcS', "#!/bin/sh\npoweroff".getBytes())
+        addFile(cpio, 'etc/rcS', new File(testScriptPath).bytes)
         addFile(cpio, 'etc/inittab', ("::sysinit:/etc/rcS\n" + "ttyS0::respawn:/bin/busybox getty -nl /bin/sh 38400 ttyS0\n").getBytes());
         addFile(cpio, 'etc/fstab', "proc            /proc        proc    defaults          0       0\n".getBytes());
         cpio.close()
-        return "../initramfs.cpio.gz"
+        return artifact
+    }
+
+    String getHash(){
+        return Utils.calcHash(toolsBinary.getHash()+Utils.calcHash(new File(testScriptPath).bytes))
     }
 }

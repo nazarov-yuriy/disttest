@@ -3,10 +3,10 @@ import org.strangeway.disttest.Initramfs
 import org.strangeway.disttest.KernelBinary
 
 KernelBinary kernelBinary = new KernelBinary("linux-4.4.4", "acpi")
-//println kernelBinary.getBinary()
+println kernelBinary.getArtifact()
 
-Initramfs initramfs = new Initramfs()
-//println initramfs.getInitramfs()
+Initramfs initramfs = new Initramfs("shutdown.sh")
+println initramfs.getArtifact()
 
 Distro distro = new Distro(kernelBinary, initramfs)
 print distro.run()

@@ -10,4 +10,8 @@ class ToolsSource {
         assert new File(toolsSource.path).isDirectory()
         return toolsSource
     }
+
+    String getHash(){
+        return Utils.calcHash(path) //ToDo: use version instead
+    }
 }
