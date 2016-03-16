@@ -1,4 +1,5 @@
 apply plugin: 'groovy'
+apply plugin: 'idea'
 apply plugin: 'application'
 
 mainClassName = "Starter"
@@ -12,6 +13,13 @@ task fatJar(type: Jar) {
     }
     manifest {
         attributes 'Main-Class': 'Starter'
+    }
+}
+
+idea {
+    module {
+        outputDir = file('out')
+        excludeDirs = [file('toolsSources'), file('kernelSources')]
     }
 }
 
