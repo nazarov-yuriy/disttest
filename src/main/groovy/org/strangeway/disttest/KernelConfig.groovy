@@ -1,19 +1,22 @@
 package org.strangeway.disttest
 
-import java.security.MessageDigest
-
 class KernelConfig {
     static private final String basePath = "kernelConfigs"
-    public String path
+    String version
+    String name
 
-    static KernelConfig findByname(String name){
-        KernelConfig kernelConfig = new KernelConfig()
-        kernelConfig.path = "$basePath/$name"
-        assert new File(kernelConfig.path).isFile()
-        return kernelConfig
+    KernelConfig(String _version, String _name){
+        version = _version
+        name = _name
+    }
+
+    String getPath(){ //ToDo: implement actual search for config
+        String path = "$basePath/$version/$name"
+        assert new File(path).exists()
+        return path
     }
 
     String getHash(){
-        return Utils.calcHash(new File(path).bytes)
+        return Utils.calcHash(new File(getPath()).bytes)
     }
 }

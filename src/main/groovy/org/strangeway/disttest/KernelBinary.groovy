@@ -11,8 +11,8 @@ class KernelBinary {
     KernelConfig kernelConfig
 
     KernelBinary(String version, String configName){
-        kernelSource = KernelSource.findByVersion(version)
-        kernelConfig = KernelConfig.findByname(configName)
+        kernelSource = new KernelSource(version)
+        kernelConfig = new KernelConfig(version, configName)
         assert kernelSource
         assert kernelConfig
     }
@@ -23,12 +23,12 @@ class KernelBinary {
             return artifact;
         }
 
-        Path src = Paths.get(kernelConfig.path)
-        Path dst = Paths.get(kernelSource.path+"/.config")
+        Path src = Paths.get(kernelConfig.getPath())
+        Path dst = Paths.get(kernelSource.getPath()+"/.config")
         Files.copy(src, dst, REPLACE_EXISTING)
 
         //ToDo: implement status reporting
-        Process process = new ProcessBuilder("make", "-j9").directory(new File(kernelSource.path)).start();
+        Process process = new ProcessBuilder("make", "-j9").directory(new File(kernelSource.getPath())).start();
         process.waitFor()
         assert 0 == process.exitValue()
         Files.copy(Paths.get(kernelSource.path+"/arch/x86_64/boot/bzImage"), Paths.get(artifact.path), REPLACE_EXISTING)
