@@ -1,7 +1,7 @@
 package org.strangeway.disttest
 
 class ToolsSource {
-    private static final basePath = "../toolsSources"
+    private static final basePath = "toolsSources"
     String path
 
     static ToolsSource findByVersion(String version){

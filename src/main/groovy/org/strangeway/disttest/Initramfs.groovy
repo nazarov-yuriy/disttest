@@ -13,7 +13,7 @@ class Initramfs {
     String testScriptPath
 
     Initramfs(String testScript) {
-        testScriptPath = "../testScripts/"+testScript
+        testScriptPath = "testScripts/"+testScript
         toolsBinary = new ToolsBinary("busybox-1.24.1")
     }
 
@@ -52,7 +52,7 @@ class Initramfs {
     }
 
     File getArtifact() {
-        File artifact = new File("../artifacts/"+getHash()+".cpio.gz")
+        File artifact = new File("artifacts/"+getHash()+".cpio.gz")
         if(artifact.exists()){
             return artifact;
         }

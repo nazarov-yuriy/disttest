@@ -3,7 +3,7 @@ package org.strangeway.disttest
 import java.security.MessageDigest
 
 class KernelSource {
-    private static final basePath = "../kernelSources"
+    private static final basePath = "kernelSources"
     String path
 
     static KernelSource findByVersion(String version){

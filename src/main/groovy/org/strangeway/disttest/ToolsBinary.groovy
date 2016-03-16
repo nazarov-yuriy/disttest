@@ -8,7 +8,7 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING
 
 class ToolsBinary {
     ToolsSource toolsSource
-    public static final basePath = "../toolsConfigs"
+    public static final basePath = "toolsConfigs"
 
     ToolsBinary(String version) {
         toolsSource = ToolsSource.findByVersion(version)

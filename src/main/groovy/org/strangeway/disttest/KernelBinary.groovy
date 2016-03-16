@@ -18,7 +18,7 @@ class KernelBinary {
     }
 
     File getArtifact() {
-        File artifact = new File("../artifacts/"+getHash()+".bzImage")
+        File artifact = new File("artifacts/"+getHash()+".bzImage")
         if(artifact.exists()){
             return artifact;
         }

@@ -6,3 +6,5 @@ toolsSources/*
 out
 groovy.iml
 lib/*
+build/*
+.gradle/*

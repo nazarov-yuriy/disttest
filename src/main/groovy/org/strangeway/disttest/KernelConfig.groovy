@@ -3,7 +3,7 @@ package org.strangeway.disttest
 import java.security.MessageDigest
 
 class KernelConfig {
-    static private final String basePath = "../kernelConfigs"
+    static private final String basePath = "kernelConfigs"
     public String path
 
     static KernelConfig findByname(String name){

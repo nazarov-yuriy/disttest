@@ -1,0 +1,25 @@
+apply plugin: 'groovy'
+apply plugin: 'application'
+
+mainClassName = "Starter"
+
+task fatJar(type: Jar) {
+    from files(sourceSets.main.output.classesDir)
+    from { configurations.compile.collect { zipTree(it) } } {
+        exclude "META-INF/*.SF"
+        exclude "META-INF/*.DSA"
+        exclude "META-INF/*.RSA"
+    }
+    manifest {
+        attributes 'Main-Class': 'Starter'
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.codehaus.groovy:groovy-all:1.8.6'
+    compile 'org.apache.commons:commons-compress:1.10'
+}
