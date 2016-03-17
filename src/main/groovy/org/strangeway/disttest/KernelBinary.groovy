@@ -10,7 +10,7 @@ class KernelBinary {
     KernelSource kernelSource
     KernelConfig kernelConfig
 
-    KernelBinary(String version, String configName){
+    KernelBinary(String version, String configName) {
         kernelSource = new KernelSource(version)
         kernelConfig = new KernelConfig(version, configName)
         assert kernelSource
@@ -18,27 +18,40 @@ class KernelBinary {
     }
 
     File getArtifact() {
-        File artifact = new File("artifacts/"+getHash()+".bzImage")
-        if(artifact.exists()){
+        File artifact = new File("artifacts/" + getHash() + ".bzImage")
+        if (artifact.exists()) {
             return artifact;
         }
 
         Path src = Paths.get(kernelConfig.getPath())
-        Path dst = Paths.get(kernelSource.getPath()+"/.config")
+        Path dst = Paths.get(kernelSource.getPath() + "/.config")
         Files.copy(src, dst, REPLACE_EXISTING)
 
         //ToDo: implement status reporting
-        Process process = new ProcessBuilder("make", "-j9").directory(new File(kernelSource.getPath())).start();
+        Process process
+        if ((new File("include/linux/compiler-gcc4.h").exists()) &&
+                (!new File("include/linux/compiler-gcc5.h").exists())) {
+            String gcc = "gcc-4.9"
+            try{
+                gcc.execute()
+            }catch(all){
+                gcc = "gcc-4.8"
+            }
+            process = new ProcessBuilder("make", "-j9", "CC=$gcc").directory(new File(kernelSource.getPath())).start();
+        }else{
+            process = new ProcessBuilder("make", "-j9").directory(new File(kernelSource.getPath())).start();
+        }
+
         def sout = new StringBuilder()
         def serr = new StringBuilder()
         process.consumeProcessOutput(sout, serr)
         process.waitFor()
         assert 0 == process.exitValue()
-        Files.copy(Paths.get(kernelSource.path+"/arch/x86_64/boot/bzImage"), Paths.get(artifact.path), REPLACE_EXISTING)
+        Files.copy(Paths.get(kernelSource.path + "/arch/x86_64/boot/bzImage"), Paths.get(artifact.path), REPLACE_EXISTING)
         return artifact
     }
 
-    String getHash(){
-        return Utils.calcHash(kernelSource.getHash()+kernelConfig.getHash())
+    String getHash() {
+        return Utils.calcHash(kernelSource.getHash() + kernelConfig.getHash())
     }
 }
