@@ -29,6 +29,9 @@ class KernelBinary {
 
         //ToDo: implement status reporting
         Process process = new ProcessBuilder("make", "-j9").directory(new File(kernelSource.getPath())).start();
+        def sout = new StringBuilder()
+        def serr = new StringBuilder()
+        process.consumeProcessOutput(sout, serr)
         process.waitFor()
         assert 0 == process.exitValue()
         Files.copy(Paths.get(kernelSource.path+"/arch/x86_64/boot/bzImage"), Paths.get(artifact.path), REPLACE_EXISTING)

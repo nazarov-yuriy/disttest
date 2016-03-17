@@ -11,19 +11,21 @@ class ToolsBinary {
     public static final basePath = "toolsConfigs"
 
     ToolsBinary(String version) {
-        toolsSource = ToolsSource.findByVersion(version)
-        assert toolsSource
+        toolsSource = new ToolsSource(version)
     }
 
     String getBinary() {
         Path src = Paths.get(basePath+"/default")
-        Path dst = Paths.get(toolsSource.path+"/.config")
+        Path dst = Paths.get(toolsSource.getPath()+"/.config")
         Files.copy(src, dst, REPLACE_EXISTING)
 
-        Process process = new ProcessBuilder("make", "-j9").directory(new File(toolsSource.path)).start();
+        Process process = new ProcessBuilder("make", "-j9").directory(new File(toolsSource.getPath())).start();
+        def sout = new StringBuilder()
+        def serr = new StringBuilder()
+        process.consumeProcessOutput(sout, serr)
         process.waitFor()
         assert 0 == process.exitValue()
-        return toolsSource.path+"/busybox"
+        return toolsSource.getPath()+"/busybox"
     }
 
     String getHash(){
