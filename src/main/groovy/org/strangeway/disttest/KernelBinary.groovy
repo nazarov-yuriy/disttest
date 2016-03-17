@@ -17,6 +17,7 @@ class KernelBinary {
         assert kernelConfig
     }
 
+    //ToDo: implement status reporting
     File getArtifact() {
         File artifact = new File("artifacts/" + getHash() + ".bzImage")
         if (artifact.exists()) {
@@ -27,18 +28,29 @@ class KernelBinary {
         Path dst = Paths.get(kernelSource.getPath() + "/.config")
         Files.copy(src, dst, REPLACE_EXISTING)
 
-        //ToDo: implement status reporting
+
+        if (new File(kernelSource.getPath() + "/kernel/timeconst.pl").exists()) {
+            String hash = Utils.calcHash(new File(kernelSource.getPath() + "/kernel/timeconst.pl").getBytes())
+            if ("09899b0245ce50e1c82bc999db5a9e702318678a" == hash) {
+                Process process = new ProcessBuilder("patch", "-p1", "--batch").directory(new File(kernelSource.getPath())).start();
+                OutputStream stdin = process.getOutputStream();
+                stdin << new File("kernelPatches/timeconst.pl.patch").getBytes()
+                stdin.close()
+                process.waitFor()
+            }
+        }
+
         Process process
-        if ((new File("include/linux/compiler-gcc4.h").exists()) &&
-                (!new File("include/linux/compiler-gcc5.h").exists())) {
+        if ((new File(kernelSource.getPath() + "/include/linux/compiler-gcc4.h").exists()) &&
+                (!new File(kernelSource.getPath() + "/include/linux/compiler-gcc5.h").exists())) {
             String gcc = "gcc-4.9"
-            try{
+            try {
                 gcc.execute()
-            }catch(all){
+            } catch (all) {
                 gcc = "gcc-4.8"
             }
             process = new ProcessBuilder("make", "-j9", "CC=$gcc").directory(new File(kernelSource.getPath())).start();
-        }else{
+        } else {
             process = new ProcessBuilder("make", "-j9").directory(new File(kernelSource.getPath())).start();
         }
 
