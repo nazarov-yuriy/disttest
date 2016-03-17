@@ -10,8 +10,19 @@ class KernelConfig {
         name = _name
     }
 
-    String getPath(){ //ToDo: implement actual search for config
-        String path = "$basePath/$version/$name"
+    String getPath(){
+        String fullVersion = version
+        String path = "$basePath/$fullVersion/$name" //linux-4.4.6
+
+        if(!new File(path).exists()){
+            fullVersion = fullVersion.replaceFirst(/\.\d+$/, "")
+            path = "$basePath/$fullVersion/$name" //linux-4.4
+        }
+        if(!new File(path).exists()){
+            fullVersion = fullVersion.replaceFirst(/\.\d+$/, "")
+            path = "$basePath/$fullVersion/$name" //linux-4
+        }
+
         assert new File(path).exists()
         return path
     }
