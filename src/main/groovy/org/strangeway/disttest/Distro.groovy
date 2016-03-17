@@ -19,8 +19,12 @@ class Distro {
                 "-device", "isa-serial,chardev=charserial0,id=serial0",
                 "-nographic", "-nodefconfig", "-nodefaults"
         ).start()
-        process.waitFor()
+        process.waitForOrKill(5000) //ToDo: make value at least configurable
         assert 0 == process.exitValue()
-        return process.getText();
+        try {
+            return process.getText();
+        } catch (all) {
+            return "<KILLED>"
+        }
     }
 }
