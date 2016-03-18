@@ -8,7 +8,8 @@ import org.apache.commons.compress.compressors.gzip.GzipParameters
 
 import java.util.zip.Deflater
 
-class Initramfs {
+class Initramfs implements Task {
+    private volatile percentage = 0
     ToolsBinary toolsBinary
     String testScriptPath
 
@@ -52,8 +53,10 @@ class Initramfs {
     }
 
     File getArtifact() {
+        percentage = 0
         File artifact = new File("artifacts/"+getHash()+".cpio.gz")
         if(artifact.exists()){
+            percentage = 100
             return artifact;
         }
 
@@ -75,10 +78,26 @@ class Initramfs {
         addFile(cpio, 'etc/inittab', ("::sysinit:/etc/rcS\n" + "ttyS0::respawn:/bin/busybox getty -nl /bin/sh 38400 ttyS0\n").getBytes());
         addFile(cpio, 'etc/fstab', "proc            /proc        proc    defaults          0       0\n".getBytes());
         cpio.close()
+        percentage = 100
         return artifact
     }
 
     String getHash(){
         return Utils.calcHash(toolsBinary.getHash()+Utils.calcHash(new File(testScriptPath).bytes))
+    }
+
+    @Override
+    String getDescription() {
+        return "Pack Initramfs"
+    }
+
+    @Override
+    Task[] getSubTasks() {
+        return [toolsBinary]
+    }
+
+    @Override
+    long getPercentage() {
+        return percentage
     }
 }

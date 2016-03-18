@@ -2,7 +2,8 @@ package org.strangeway.disttest
 
 import java.util.regex.Matcher
 
-class KernelSource {
+class KernelSource implements Task {
+    private percentage = 0
     private static final basePath = "kernelSources"
     String version
 
@@ -39,10 +40,26 @@ class KernelSource {
             process.waitFor()
             assert 0 == process.exitValue()
         }
+        percentage = 100
         return srcDir.getPath()
     }
 
     String getHash() {
         return Utils.calcHash(version)
+    }
+
+    @Override
+    String getDescription() {
+        return "Download Kernel"
+    }
+
+    @Override
+    Task[] getSubTasks() {
+        return new Task[0]
+    }
+
+    @Override
+    long getPercentage() {
+        return percentage
     }
 }

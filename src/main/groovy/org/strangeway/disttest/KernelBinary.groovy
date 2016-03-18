@@ -6,9 +6,10 @@ import java.nio.file.Paths
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING
 
-class KernelBinary {
+class KernelBinary implements Task {
     KernelSource kernelSource
     KernelConfig kernelConfig
+    private volatile long percentage = 0
 
     KernelBinary(String version, String configName) {
         kernelSource = new KernelSource(version)
@@ -17,10 +18,11 @@ class KernelBinary {
         assert kernelConfig
     }
 
-    //ToDo: implement status reporting
     File getArtifact() {
+        percentage = 0
         File artifact = new File("artifacts/" + getHash() + ".bzImage")
         if (artifact.exists()) {
+            percentage = 100
             return artifact;
         }
 
@@ -60,10 +62,26 @@ class KernelBinary {
         process.waitFor()
         assert 0 == process.exitValue()
         Files.copy(Paths.get(kernelSource.path + "/arch/x86_64/boot/bzImage"), Paths.get(artifact.path), REPLACE_EXISTING)
+        percentage = 100
         return artifact
     }
 
     String getHash() {
         return Utils.calcHash(kernelSource.getHash() + kernelConfig.getHash())
+    }
+
+    @Override
+    String getDescription() {
+        return "Build Kernel"
+    }
+
+    @Override
+    Task[] getSubTasks() {
+        return [kernelSource]
+    }
+
+    @Override
+    long getPercentage() {
+        return percentage
     }
 }

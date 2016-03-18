@@ -6,7 +6,8 @@ import java.nio.file.Paths
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING
 
-class ToolsBinary {
+class ToolsBinary implements Task {
+    private long percentage = 0
     ToolsSource toolsSource
     public static final basePath = "toolsConfigs"
 
@@ -15,6 +16,7 @@ class ToolsBinary {
     }
 
     String getBinary() {
+        percentage = 0
         Path src = Paths.get(basePath+"/default")
         Path dst = Paths.get(toolsSource.getPath()+"/.config")
         Files.copy(src, dst, REPLACE_EXISTING)
@@ -25,10 +27,26 @@ class ToolsBinary {
         process.consumeProcessOutput(sout, serr)
         process.waitFor()
         assert 0 == process.exitValue()
+        percentage = 100
         return toolsSource.getPath()+"/busybox"
     }
 
     String getHash(){
         return Utils.calcHash(toolsSource.getHash())
+    }
+
+    @Override
+    String getDescription() {
+        return "Build Tools"
+    }
+
+    @Override
+    Task[] getSubTasks() {
+        return [toolsSource]
+    }
+
+    @Override
+    long getPercentage() {
+        return percentage
     }
 }

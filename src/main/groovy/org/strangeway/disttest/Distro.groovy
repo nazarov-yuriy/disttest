@@ -1,6 +1,9 @@
 package org.strangeway.disttest
 
-class Distro {
+class Distro implements Task{
+    volatile long startedAt = 0
+    volatile boolean running = false
+
     KernelBinary kernelBinary
     Initramfs initramfs
 
@@ -19,12 +22,38 @@ class Distro {
                 "-device", "isa-serial,chardev=charserial0,id=serial0",
                 "-nographic", "-nodefconfig", "-nodefaults"
         ).start()
+        running = true
+        startedAt = System.currentTimeMillis()
         process.waitForOrKill(5000) //ToDo: make value at least configurable
         assert 0 == process.exitValue()
+        running = false
         try {
             return process.getText();
         } catch (all) {
-            return "<KILLED>"
+            return "<KILLED>\n"
+        }
+    }
+
+    @Override
+    String getDescription() {
+        return "Running"
+    }
+
+    @Override
+    Task[] getSubTasks() {
+        return [kernelBinary, initramfs]
+    }
+
+    @Override
+    long getPercentage() {
+        if(running){
+            return 100.0*(System.currentTimeMillis() - startedAt)/5000.0
+        }else{
+            if(startedAt) {
+                return 100
+            }else{
+                return 0
+            }
         }
     }
 }
