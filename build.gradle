@@ -28,6 +28,6 @@ repositories {
 }
 
 dependencies {
-    compile 'org.codehaus.groovy:groovy-all:1.8.6'
+    compile 'org.codehaus.groovy:groovy-all:2.4.6'
     compile 'org.apache.commons:commons-compress:1.10'
 }

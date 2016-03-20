@@ -44,6 +44,12 @@ class KernelBinary implements Task {
             }
         }
 
+        Process processOldConfig = new ProcessBuilder("make", "oldconfig").directory(new File(kernelSource.getPath())).start();
+        processOldConfig.outputStream.close()
+        processOldConfig.consumeProcessOutput(new StringBuilder(), new StringBuilder())
+        processOldConfig.waitFor()
+        assert 0 == processOldConfig.exitValue()
+
         Process process
         if ((new File(kernelSource.getPath() + "/include/linux/compiler-gcc4.h").exists()) &&
                 (!new File(kernelSource.getPath() + "/include/linux/compiler-gcc5.h").exists())) {
