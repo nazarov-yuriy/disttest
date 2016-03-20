@@ -29,9 +29,19 @@ class KernelSource implements Task {
             }
             assert url
 
-            def fileStream = srcArchive.newOutputStream()
-            fileStream << new URL(url).openStream()
+            long totalLen = new URL(url).openConnection().getContentLength();
+            long downloadedLen = 0
+            BufferedOutputStream fileStream = srcArchive.newOutputStream()
+            InputStream urlStream = new URL(url).openStream();
+            byte[] buf = new byte[65536]
+            int len = 0
+            while( (len = urlStream.read(buf)) != -1 ){
+                fileStream.write(buf, 0, len)
+                downloadedLen += len
+                percentage = 100L * downloadedLen / totalLen
+            }
             fileStream.close()
+            urlStream.close()
         }
 
         File srcDir = new File("$basePath/$version")

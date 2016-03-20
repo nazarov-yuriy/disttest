@@ -10,12 +10,15 @@ import java.util.zip.Deflater
 
 class Initramfs implements Task {
     private volatile percentage = 0
+    private boolean artifactExists = false
     ToolsBinary toolsBinary
     String testScriptPath
 
     Initramfs(String testScript) {
         testScriptPath = "testScripts/"+testScript
         toolsBinary = new ToolsBinary("busybox-1.24.1")
+        assert toolsBinary
+        artifactExists = new File("artifacts/"+getHash()+".cpio.gz").exists()
     }
 
     private static void addDir(CpioArchiveOutputStream archive, String path) {
@@ -93,7 +96,7 @@ class Initramfs implements Task {
 
     @Override
     Task[] getSubTasks() {
-        return [toolsBinary]
+        return artifactExists ? [] : [toolsBinary]
     }
 
     @Override

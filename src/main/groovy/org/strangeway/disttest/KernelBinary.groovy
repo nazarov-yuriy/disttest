@@ -10,12 +10,14 @@ class KernelBinary implements Task {
     KernelSource kernelSource
     KernelConfig kernelConfig
     private volatile long percentage = 0
+    private boolean artifactExists = false
 
     KernelBinary(String version, String configName) {
         kernelSource = new KernelSource(version)
         kernelConfig = new KernelConfig(version, configName)
         assert kernelSource
         assert kernelConfig
+        artifactExists = new File("artifacts/" + getHash() + ".bzImage").exists()
     }
 
     File getArtifact() {
@@ -77,7 +79,7 @@ class KernelBinary implements Task {
 
     @Override
     Task[] getSubTasks() {
-        return [kernelSource]
+        return artifactExists ? [] : [kernelSource]
     }
 
     @Override

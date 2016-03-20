@@ -28,9 +28,9 @@ class Distro implements Task{
         assert 0 == process.exitValue()
         running = false
         try {
-            return process.getText();
+            return process.getText().replace("\n", "").replace("\r", "");
         } catch (all) {
-            return "<KILLED>\n"
+            return "<KILLED>"
         }
     }
 

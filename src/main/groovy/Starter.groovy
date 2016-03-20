@@ -12,7 +12,7 @@ class Starter {
         Map<String, Distro> distros = new HashMap<>()
         List<Thread> threads = new ArrayList<>()
         ConcurrentHashMap<String, String> results = new ConcurrentHashMap<>()
-        for(version in ["linux-3.18.28","linux-2.6.32.71"]){
+        for(version in ["linux-2.6.32.71", "linux-3.18.28"]){
             KernelBinary kernelBinary = new KernelBinary(version, "acpi")
             Distro distro = new Distro(kernelBinary, initramfs)
             distros[version] = distro
@@ -26,8 +26,13 @@ class Starter {
             threads.each {t -> if(t.alive){needBreak = false}}
             Thread.sleep(100)
             distros.each { k, v ->
-                println Utils.renderProgress(v)
+                if(results.containsKey(k)){
+                    println String.format("%-20s %-100s", k, results[k]) //ToDo: use more reliable method to clear terminal
+                }else {
+                    println String.format("%-20s %-100s", k, Utils.renderProgress(v))
+                }
             }
+            print String.format("%c[%dA",0x1B,distros.size());
 
             if(needBreak) {
                 break
@@ -35,7 +40,7 @@ class Starter {
         }
 
         results.each {k,v->
-            print k + " " + v
+            println String.format("%-20s %-100s", k, v)
         }
     }
 }
