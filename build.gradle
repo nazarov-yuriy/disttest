@@ -19,7 +19,7 @@ task fatJar(type: Jar) {
 idea {
     module {
         outputDir = file('out')
-        excludeDirs = [file('toolsSources'), file('kernelSources')]
+        excludeDirs = [file('toolsSources'), file('kernelSources'), file('kernelRepo'), file('mounts')]
     }
 }
 

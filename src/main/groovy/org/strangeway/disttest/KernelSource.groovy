@@ -1,31 +1,48 @@
 package org.strangeway.disttest
 
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.regex.Matcher
 
 class KernelSource implements Task {
     private percentage = 0
     private static final basePath = "kernelSources"
+    private static final gitUrl = "git@server.home:/home/git/linux-stable.git"
     String version
+    String tmpMountPoint
+    String aufsMountPoint
 
-    KernelSource(String _version){
+    KernelSource(String _version) {
         version = _version
     }
 
-    String getPath() {
-        File srcArchive = new File("downloads/"+version+".tar.xz")
-        if(!srcArchive.exists()){
+    String getRepoPath() {
+        File repoDir = new File("kernelRepo/linux-stable")
+        if (repoDir.isDirectory()) {
+            return repoDir.getPath()
+        }
+        Process process = new ProcessBuilder("git", "clone", "--no-checkout", gitUrl).directory(new File("kernelRepo")).start();
+        process.consumeProcessOutput()
+        process.waitFor()
+        assert 0 == process.exitValue()
+
+    }
+
+    String getSeedPath(String version) {
+        File srcArchive = new File("downloads/" + version + ".tar.xz")
+        if (!srcArchive.exists()) {
             String url = null
             Matcher v4 = version =~ /linux-4\..*/
-            if(v4){
-                url = "https://cdn.kernel.org/pub/linux/kernel/v4.x/"+version+".tar.xz"
+            if (v4) {
+                url = "https://cdn.kernel.org/pub/linux/kernel/v4.x/" + version + ".tar.xz"
             }
             Matcher v3 = version =~ /linux-3\..*/
-            if(v3){
-                url = "https://cdn.kernel.org/pub/linux/kernel/v3.x/"+version+".tar.xz"
+            if (v3) {
+                url = "https://cdn.kernel.org/pub/linux/kernel/v3.x/" + version + ".tar.xz"
             }
             Matcher v26 = version =~ /linux-2\..*/
-            if(v26){
-                url = "https://cdn.kernel.org/pub/linux/kernel/v2.6/longterm/v2.6.32/"+version+".tar.xz"
+            if (v26) {
+                url = "https://cdn.kernel.org/pub/linux/kernel/v2.6/longterm/v2.6.32/" + version + ".tar.xz"
             }
             assert url
 
@@ -34,24 +51,96 @@ class KernelSource implements Task {
             BufferedOutputStream fileStream = srcArchive.newOutputStream()
             InputStream urlStream = new URL(url).openStream();
             byte[] buf = new byte[65536]
-            int len = 0
-            while( (len = urlStream.read(buf)) != -1 ){
+            int len
+            while ((len = urlStream.read(buf)) != -1) {
                 fileStream.write(buf, 0, len)
                 downloadedLen += len
-                percentage = 100L * downloadedLen / totalLen
+                percentage = 20L * downloadedLen / totalLen
             }
             fileStream.close()
             urlStream.close()
         }
 
         File srcDir = new File("$basePath/$version")
-        if(!srcDir.isDirectory()){
+        if (!srcDir.isDirectory()) {
             Process process = new ProcessBuilder("tar", "-C", basePath, "-xf", srcArchive.path).start();
             process.waitFor()
             assert 0 == process.exitValue()
         }
-        percentage = 100
         return srcDir.getPath()
+    }
+
+    String getTmpPath() {
+        File tmpDir = new File("mounts/tmpMP0")
+        if (!tmpDir.isDirectory()) {
+            assert tmpDir.mkdir()
+        }
+        Process process = new ProcessBuilder("mount", tmpDir.getPath()).start(); //Should be present in /etc/fstab
+        process.waitFor()
+        assert 0 == process.exitValue()
+        return tmpMountPoint = tmpDir.getPath()
+    }
+
+    String getPath() {
+        if(aufsMountPoint != null){
+            percentage = 100
+            return aufsMountPoint
+        }
+        String seed = getSeedPath(version)
+        percentage = 20
+        String repo = getRepoPath()
+        percentage = 40
+        String tmp = getTmpPath()
+        percentage = 60
+
+        Files.deleteIfExists(Paths.get("mounts/repo0"))
+        Files.createSymbolicLink(Paths.get("mounts/repo0"), Paths.get(new File(repo).getCanonicalPath()))
+
+        Files.deleteIfExists(Paths.get("mounts/seed0"))
+        Files.createSymbolicLink(Paths.get("mounts/seed0"), Paths.get(new File(seed).getCanonicalPath()))
+
+        Files.deleteIfExists(Paths.get("mounts/tmp0"))
+        Files.createSymbolicLink(Paths.get("mounts/tmp0"), Paths.get(new File(tmp).getCanonicalPath()))
+
+        File aufsDir = new File("mounts/aufs0")
+        if (!aufsDir.isDirectory()) {
+            assert aufsDir.mkdir()
+        }
+        Process process = new ProcessBuilder("mount", aufsDir.getPath()).start(); //Should be present in /etc/fstab
+        process.waitFor()
+        assert 0 == process.exitValue()
+        aufsMountPoint = aufsDir.getPath()
+
+        String gitTag = version.replace(/linux-/, "v")
+
+        Process gitResetMixed = new ProcessBuilder("git", "reset", "--mixed", gitTag).directory(aufsDir).start();
+        gitResetMixed.waitFor()
+        assert 0 == gitResetMixed.exitValue()
+        percentage = 80
+
+        Process gitResetHard = new ProcessBuilder("git", "reset", "--hard", gitTag).directory(aufsDir).start();
+        gitResetHard.waitFor()
+        assert 0 == gitResetHard.exitValue()
+
+        Process gitClean = new ProcessBuilder("git", "clean", "-d", "-x", "-f").directory(aufsDir).start();
+        gitClean.waitFor()
+        assert 0 == gitClean.exitValue()
+
+        percentage = 100
+        return aufsMountPoint
+    }
+
+    void close() {
+        if (aufsMountPoint != null) {
+            Process aufsProcess = new ProcessBuilder("umount", aufsMountPoint).start();
+            aufsProcess.waitFor()
+            assert 0 == aufsProcess.exitValue()
+        }
+        if (tmpMountPoint) {
+            Process tmpProcess = new ProcessBuilder("umount", tmpMountPoint).start();
+            tmpProcess.waitFor()
+            assert 0 == tmpProcess.exitValue()
+        }
     }
 
     String getHash() {

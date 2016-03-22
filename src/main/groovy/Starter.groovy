@@ -12,7 +12,7 @@ class Starter {
         Map<String, Distro> distros = new HashMap<>()
         List<Thread> threads = new ArrayList<>()
         ConcurrentHashMap<String, String> results = new ConcurrentHashMap<>()
-        for(version in ["linux-2.6.32.71", "linux-3.18.28"]){
+        for(version in ["linux-2.6.32.71"]){
             KernelBinary kernelBinary = new KernelBinary(version, "acpi")
             Distro distro = new Distro(kernelBinary, initramfs)
             distros[version] = distro

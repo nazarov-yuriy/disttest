@@ -49,6 +49,7 @@ class KernelBinary implements Task {
         processOldConfig.consumeProcessOutput(new StringBuilder(), new StringBuilder())
         processOldConfig.waitFor()
         assert 0 == processOldConfig.exitValue()
+        percentage = 5
 
         Process process
         if ((new File(kernelSource.getPath() + "/include/linux/compiler-gcc4.h").exists()) &&
@@ -64,12 +65,11 @@ class KernelBinary implements Task {
             process = new ProcessBuilder("make", "-j9").directory(new File(kernelSource.getPath())).start();
         }
 
-        def sout = new StringBuilder()
-        def serr = new StringBuilder()
-        process.consumeProcessOutput(sout, serr)
+        process.consumeProcessOutput()
         process.waitFor()
         assert 0 == process.exitValue()
         Files.copy(Paths.get(kernelSource.path + "/arch/x86_64/boot/bzImage"), Paths.get(artifact.path), REPLACE_EXISTING)
+        kernelSource.close()
         percentage = 100
         return artifact
     }

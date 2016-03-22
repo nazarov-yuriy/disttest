@@ -8,3 +8,5 @@ groovy.iml
 lib/*
 build/*
 .gradle/*
+mounts/*
+src/main/groovy/Test.groovy
