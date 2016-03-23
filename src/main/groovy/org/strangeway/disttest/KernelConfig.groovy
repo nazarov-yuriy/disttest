@@ -33,11 +33,11 @@ class KernelConfig {
 
     String getPath() {
         def (major, minor, patch) = parseVersion(version)
-        for(int testMinor = Integer.parseInt(minor); testMinor >= 0; testMinor--){
-            for(int testPatch = Integer.parseInt(patch); testPatch >= 0; testPatch--){ //May be we should start with bigger number for prev minors
+        for (int testMinor = Integer.parseInt(minor); testMinor >= 0; testMinor--) {
+            for (int testPatch = Integer.parseInt(patch); testPatch >= 0; testPatch--) {//May be we should start with bigger number for prev minors
                 String testVersion = renderVersion(major, testMinor, testPatch)
                 String path = "$basePath/$testVersion/$name"
-                if(new File(path).exists()){
+                if (new File(path).exists()) {
                     return path
                 }
             }

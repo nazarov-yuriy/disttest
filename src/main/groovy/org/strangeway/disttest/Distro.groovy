@@ -1,13 +1,13 @@
 package org.strangeway.disttest
 
-class Distro implements Task{
+class Distro implements Task {
     volatile long startedAt = 0
     volatile boolean running = false
 
     KernelBinary kernelBinary
     Initramfs initramfs
 
-    Distro(KernelBinary _kernelBinary, Initramfs _initramfs){
+    Distro(KernelBinary _kernelBinary, Initramfs _initramfs) {
         kernelBinary = _kernelBinary
         initramfs = _initramfs
     }
@@ -46,12 +46,12 @@ class Distro implements Task{
 
     @Override
     long getPercentage() {
-        if(running){
-            return 100.0*(System.currentTimeMillis() - startedAt)/5000.0
-        }else{
-            if(startedAt) {
+        if (running) {
+            return 100.0 * (System.currentTimeMillis() - startedAt) / 5000.0
+        } else {
+            if (startedAt) {
                 return 100
-            }else{
+            } else {
                 return 0
             }
         }

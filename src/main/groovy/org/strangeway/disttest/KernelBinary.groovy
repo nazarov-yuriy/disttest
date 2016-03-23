@@ -9,11 +9,13 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING
 class KernelBinary implements Task {
     KernelSource kernelSource
     KernelConfig kernelConfig
+    KernelSourcePool kernelSourcePool
     private volatile long percentage = 0
     private boolean artifactExists = false
 
-    KernelBinary(String version, String configName) {
-        kernelSource = new KernelSource(version)
+    KernelBinary(String version, String configName, KernelSourcePool _kernelSourcePool) {
+        kernelSourcePool = _kernelSourcePool
+        kernelSource = kernelSourcePool.getKernelSource(version)
         kernelConfig = new KernelConfig(version, configName)
         assert kernelSource
         assert kernelConfig
@@ -69,7 +71,7 @@ class KernelBinary implements Task {
         process.waitFor()
         assert 0 == process.exitValue()
         Files.copy(Paths.get(kernelSource.path + "/arch/x86_64/boot/bzImage"), Paths.get(artifact.path), REPLACE_EXISTING)
-        kernelSource.close()
+        kernelSourcePool.putKernelSource(kernelSource)
         percentage = 100
         return artifact
     }

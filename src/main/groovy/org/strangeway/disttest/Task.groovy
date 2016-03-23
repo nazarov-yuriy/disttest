@@ -7,8 +7,11 @@ if (description != null) {
     progress(subtasks)
 }
  */
+
 interface Task {
     String getDescription()
+
     Task[] getSubTasks()
+
     long getPercentage()
 }

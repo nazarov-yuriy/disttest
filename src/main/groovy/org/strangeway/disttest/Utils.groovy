@@ -19,20 +19,20 @@ class Utils {
         return new String(chars);
     }
 
-    static String calcHash(String str){
+    static String calcHash(String str) {
         calcHash(str.getBytes())
     }
 
-    public static String renderProgress(Task task){
+    public static String renderProgress(Task task) {
         String description = task.getDescription()
-        if(description != null){
+        if (description != null) {
             String res = String.format("[%s: %3d", description, task.getPercentage());
-            res += task.getSubTasks().collect({t -> " "+renderProgress(t)}).join("")
+            res += task.getSubTasks().collect({ t -> " " + renderProgress(t) }).join("")
             res += "]"
             return res
-        }else{
+        } else {
             String res = "["
-            res += task.getSubTasks().collect({t -> " "+renderProgress(t)}).join("")
+            res += task.getSubTasks().collect({ t -> " " + renderProgress(t) }).join("")
             res += "]"
             return res
         }

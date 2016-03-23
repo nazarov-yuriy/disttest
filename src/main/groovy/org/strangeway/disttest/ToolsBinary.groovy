@@ -17,21 +17,19 @@ class ToolsBinary implements Task {
 
     String getBinary() {
         percentage = 0
-        Path src = Paths.get(basePath+"/default")
-        Path dst = Paths.get(toolsSource.getPath()+"/.config")
+        Path src = Paths.get(basePath + "/default")
+        Path dst = Paths.get(toolsSource.getPath() + "/.config")
         Files.copy(src, dst, REPLACE_EXISTING)
 
         Process process = new ProcessBuilder("make", "-j9").directory(new File(toolsSource.getPath())).start();
-        def sout = new StringBuilder()
-        def serr = new StringBuilder()
-        process.consumeProcessOutput(sout, serr)
+        process.consumeProcessOutput()
         process.waitFor()
         assert 0 == process.exitValue()
         percentage = 100
-        return toolsSource.getPath()+"/busybox"
+        return toolsSource.getPath() + "/busybox"
     }
 
-    String getHash(){
+    String getHash() {
         return Utils.calcHash(toolsSource.getHash())
     }
 

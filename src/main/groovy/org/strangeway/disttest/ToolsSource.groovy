@@ -5,20 +5,20 @@ class ToolsSource implements Task {
     String version
     long percentage = 0
 
-    ToolsSource(String _version){
+    ToolsSource(String _version) {
         version = _version
     }
 
-    String getPath(){
+    String getPath() {
         percentage = 1
         File srcArchive = new File("downloads/${version}.tar.bz2")
-        if(!srcArchive.exists()){
+        if (!srcArchive.exists()) {
             def fileStream = srcArchive.newOutputStream()
             fileStream << new URL("https://busybox.net/downloads/${version}.tar.bz2").openStream()
             fileStream.close()
         }
         File srcDir = new File("$basePath/$version")
-        if(!srcDir.isDirectory()){
+        if (!srcDir.isDirectory()) {
             Process process = new ProcessBuilder("tar", "-C", basePath, "-xf", srcArchive.path).start();
             process.waitFor()
             assert 0 == process.exitValue()
@@ -27,7 +27,7 @@ class ToolsSource implements Task {
         return srcDir.getPath()
     }
 
-    String getHash(){
+    String getHash() {
         return Utils.calcHash(version)
     }
 

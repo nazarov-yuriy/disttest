@@ -9,11 +9,13 @@ class KernelSource implements Task {
     private static final basePath = "kernelSources"
     private static final gitUrl = "git@server.home:/home/git/linux-stable.git"
     String version
+    int slot
     String tmpMountPoint
     String aufsMountPoint
 
-    KernelSource(String _version) {
+    KernelSource(String _version, int _slot) {
         version = _version
+        slot = _slot
     }
 
     String getRepoPath() {
@@ -71,7 +73,7 @@ class KernelSource implements Task {
     }
 
     String getTmpPath() {
-        File tmpDir = new File("mounts/tmpMP0")
+        File tmpDir = new File("mounts/tmpMP$slot")
         if (!tmpDir.isDirectory()) {
             assert tmpDir.mkdir()
         }
@@ -82,7 +84,7 @@ class KernelSource implements Task {
     }
 
     String getPath() {
-        if(aufsMountPoint != null){
+        if (aufsMountPoint != null) {
             percentage = 100
             return aufsMountPoint
         }
@@ -93,16 +95,16 @@ class KernelSource implements Task {
         String tmp = getTmpPath()
         percentage = 60
 
-        Files.deleteIfExists(Paths.get("mounts/repo0"))
-        Files.createSymbolicLink(Paths.get("mounts/repo0"), Paths.get(new File(repo).getCanonicalPath()))
+        Files.deleteIfExists(Paths.get("mounts/repo$slot"))
+        Files.createSymbolicLink(Paths.get("mounts/repo$slot"), Paths.get(new File(repo).getCanonicalPath()))
 
-        Files.deleteIfExists(Paths.get("mounts/seed0"))
-        Files.createSymbolicLink(Paths.get("mounts/seed0"), Paths.get(new File(seed).getCanonicalPath()))
+        Files.deleteIfExists(Paths.get("mounts/seed$slot"))
+        Files.createSymbolicLink(Paths.get("mounts/seed$slot"), Paths.get(new File(seed).getCanonicalPath()))
 
-        Files.deleteIfExists(Paths.get("mounts/tmp0"))
-        Files.createSymbolicLink(Paths.get("mounts/tmp0"), Paths.get(new File(tmp).getCanonicalPath()))
+        Files.deleteIfExists(Paths.get("mounts/tmp$slot"))
+        Files.createSymbolicLink(Paths.get("mounts/tmp$slot"), Paths.get(new File(tmp).getCanonicalPath()))
 
-        File aufsDir = new File("mounts/aufs0")
+        File aufsDir = new File("mounts/aufs$slot")
         if (!aufsDir.isDirectory()) {
             assert aufsDir.mkdir()
         }
@@ -114,15 +116,18 @@ class KernelSource implements Task {
         String gitTag = version.replace(/linux-/, "v")
 
         Process gitResetMixed = new ProcessBuilder("git", "reset", "--mixed", gitTag).directory(aufsDir).start();
+        gitResetMixed.consumeProcessOutput()
         gitResetMixed.waitFor()
         assert 0 == gitResetMixed.exitValue()
         percentage = 80
 
         Process gitResetHard = new ProcessBuilder("git", "reset", "--hard", gitTag).directory(aufsDir).start();
+        gitResetHard.consumeProcessOutput()
         gitResetHard.waitFor()
         assert 0 == gitResetHard.exitValue()
 
         Process gitClean = new ProcessBuilder("git", "clean", "-d", "-x", "-f").directory(aufsDir).start();
+        gitClean.consumeProcessOutput()
         gitClean.waitFor()
         assert 0 == gitClean.exitValue()
 

@@ -15,10 +15,10 @@ class Initramfs implements Task {
     String testScriptPath
 
     Initramfs(String testScript) {
-        testScriptPath = "testScripts/"+testScript
+        testScriptPath = "testScripts/" + testScript
         toolsBinary = new ToolsBinary("busybox-1.24.1")
         assert toolsBinary
-        artifactExists = new File("artifacts/"+getHash()+".cpio.gz").exists()
+        artifactExists = new File("artifacts/" + getHash() + ".cpio.gz").exists()
     }
 
     private static void addDir(CpioArchiveOutputStream archive, String path) {
@@ -57,8 +57,8 @@ class Initramfs implements Task {
 
     File getArtifact() {
         percentage = 0
-        File artifact = new File("artifacts/"+getHash()+".cpio.gz")
-        if(artifact.exists()){
+        File artifact = new File("artifacts/" + getHash() + ".cpio.gz")
+        if (artifact.exists()) {
             percentage = 100
             return artifact;
         }
@@ -85,8 +85,8 @@ class Initramfs implements Task {
         return artifact
     }
 
-    String getHash(){
-        return Utils.calcHash(toolsBinary.getHash()+Utils.calcHash(new File(testScriptPath).bytes))
+    String getHash() {
+        return Utils.calcHash(toolsBinary.getHash() + Utils.calcHash(new File(testScriptPath).bytes))
     }
 
     @Override
