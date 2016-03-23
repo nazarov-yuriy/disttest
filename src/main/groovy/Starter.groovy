@@ -77,8 +77,32 @@ class Starter {
         }
     }
 
+    public static void bisectSemtexDemo(){
+        KernelSourcePool kernelSourcePool = new KernelSourcePool()
+        Initramfs initramfs = new Initramfs("cve-2013-2094.sh")
+        initramfs.getArtifact()
+
+        String[] commits = KernelRepo.getVersionBetweenTags("v3.0", "v3.0.101")
+        int broken = 0
+        int working = commits.length-1
+        while(broken+1 != working){
+            int testIndex = (broken+working)/2
+            KernelBinary kernelBinary = new KernelBinary("linux-3.0", commits[testIndex], "acpi_perf_sec", kernelSourcePool)
+            println "Testing commit #$testIndex($broken..$working)"+commits[testIndex]
+            Distro distro = new Distro(kernelBinary, initramfs)
+            String res = distro.run()
+            distro.close()
+            println "Res: $res\n"
+            if(res == "uid=0(root) gid=0(root) groups=1(user)"){
+                broken = testIndex
+            }else{
+                working = testIndex
+            }
+        }
+    }
+
     public static void main(String[] args) {
-        bisectDemo()
+        bisectSemtexDemo()
     }
 }
 

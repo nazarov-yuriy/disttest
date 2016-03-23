@@ -23,7 +23,7 @@ class Initramfs implements Task {
 
     private static void addDir(CpioArchiveOutputStream archive, String path) {
         CpioArchiveEntry entry = new CpioArchiveEntry(path)
-        entry.setMode(CpioConstants.C_ISDIR | CpioConstants.C_IXUSR | CpioConstants.C_IRUSR)
+        entry.setMode(CpioConstants.C_ISDIR | CpioConstants.C_IXUSR | CpioConstants.C_IRUSR | CpioConstants.C_IXOTH | CpioConstants.C_IROTH)
         archive.putArchiveEntry(entry)
         archive.closeArchiveEntry()
     }
@@ -31,7 +31,7 @@ class Initramfs implements Task {
     private static void addSymlink(CpioArchiveOutputStream archive, String path, String target) {
         CpioArchiveEntry entry = new CpioArchiveEntry(path)
         entry.setSize(target.length());
-        entry.setMode(CpioConstants.C_ISLNK | CpioConstants.C_IXUSR | CpioConstants.C_IRUSR)
+        entry.setMode(CpioConstants.C_ISLNK | CpioConstants.C_IXUSR | CpioConstants.C_IRUSR | CpioConstants.C_IXOTH | CpioConstants.C_IROTH)
         archive.putArchiveEntry(entry)
         archive.write(target.bytes)
         archive.closeArchiveEntry()
@@ -40,7 +40,7 @@ class Initramfs implements Task {
     private static void addFile(CpioArchiveOutputStream archive, String path, byte[] contents) {
         CpioArchiveEntry entry = new CpioArchiveEntry(path)
         entry.setSize(contents.length);
-        entry.setMode(CpioConstants.C_ISREG | CpioConstants.C_IXUSR | CpioConstants.C_IRUSR);
+        entry.setMode(CpioConstants.C_ISREG | CpioConstants.C_IXUSR | CpioConstants.C_IRUSR | CpioConstants.C_IXOTH | CpioConstants.C_IROTH);
         archive.putArchiveEntry(entry);
         archive.write(contents);
         archive.closeArchiveEntry();
@@ -48,7 +48,7 @@ class Initramfs implements Task {
 
     private static void addCharDev(CpioArchiveOutputStream archive, String path, long major, long minor) {
         CpioArchiveEntry entry = new CpioArchiveEntry(path)
-        entry.setMode(CpioConstants.C_ISCHR | CpioConstants.C_IXUSR | CpioConstants.C_IRUSR)
+        entry.setMode(CpioConstants.C_ISCHR | CpioConstants.C_IXUSR | CpioConstants.C_IRUSR | CpioConstants.C_IXOTH | CpioConstants.C_IROTH)
         entry.setRemoteDeviceMaj(major)
         entry.setRemoteDeviceMin(minor)
         archive.putArchiveEntry(entry)
@@ -80,6 +80,8 @@ class Initramfs implements Task {
         addFile(cpio, 'etc/rcS', new File(testScriptPath).bytes)
         addFile(cpio, 'etc/inittab', ("::sysinit:/etc/rcS\n" + "ttyS0::respawn:/bin/busybox getty -nl /bin/sh 38400 ttyS0\n").getBytes());
         addFile(cpio, 'etc/fstab', "proc            /proc        proc    defaults          0       0\n".getBytes());
+        addFile(cpio, "etc/passwd", "root:x:0:0:root:/root:/bin/sh\nuser:x:1:1:user:/user:/bin/sh".getBytes())
+        addFile(cpio, "etc/group", "root:x:0:\nuser:x:1:".getBytes())
         cpio.close()
         percentage = 100
         return artifact

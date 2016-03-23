@@ -15,7 +15,7 @@ class Distro implements Task {
     String run() {
         Process process = new ProcessBuilder("qemu-system-x86_64",
                 "-machine", "accel=kvm",
-                "-m", "64",
+                "-m", "512",
                 "-kernel", kernelBinary.getArtifact().path,
                 "-initrd", initramfs.getArtifact().path,
                 "-chardev", "stdio,id=charserial0",
