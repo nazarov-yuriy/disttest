@@ -16,7 +16,7 @@ class KernelRepo {
     }
 
     static String[] getVersionBetweenTags(String from, String to){
-        Process process = new ProcessBuilder("git", "log", "--pretty=format:%H", "$from..$to").directory(new File(getRepoPath())).start();
+        Process process = new ProcessBuilder("git", "log", "--pretty=format:%H", "$from^..$to").directory(new File(getRepoPath())).start();
         StringBuilder sout = new StringBuilder()
         StringBuilder serr = new StringBuilder()
         process.consumeProcessOutput(sout, serr)
