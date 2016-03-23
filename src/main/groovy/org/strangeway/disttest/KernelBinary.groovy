@@ -13,9 +13,9 @@ class KernelBinary implements Task {
     private volatile long percentage = 0
     private boolean artifactExists = false
 
-    KernelBinary(String version, String configName, KernelSourcePool _kernelSourcePool) {
+    KernelBinary(String version, String commit, String configName, KernelSourcePool _kernelSourcePool) {
         kernelSourcePool = _kernelSourcePool
-        kernelSource = kernelSourcePool.getKernelSource(version)
+        kernelSource = kernelSourcePool.getKernelSource(version, commit)
         kernelConfig = new KernelConfig(version, configName)
         assert kernelSource
         assert kernelConfig
@@ -59,7 +59,7 @@ class KernelBinary implements Task {
             String gcc = "gcc-4.9"
             try {
                 gcc.execute()
-            } catch (all) {
+            } catch (ignored) {
                 gcc = "gcc-4.8"
             }
             process = new ProcessBuilder("make", "-j9", "CC=$gcc").directory(new File(kernelSource.getPath())).start();
@@ -71,9 +71,12 @@ class KernelBinary implements Task {
         process.waitFor()
         assert 0 == process.exitValue()
         Files.copy(Paths.get(kernelSource.path + "/arch/x86_64/boot/bzImage"), Paths.get(artifact.path), REPLACE_EXISTING)
-        kernelSourcePool.putKernelSource(kernelSource)
         percentage = 100
         return artifact
+    }
+
+    void close() {
+        kernelSourcePool.putKernelSource(kernelSource)
     }
 
     String getHash() {

@@ -21,6 +21,8 @@ class KernelConfig {
         if (m2.find()) {
             return [m2.group(1), m2.group(2), 0]
         }
+        assert 0
+        return []
     }
 
     public static String renderVersion(String major, int minor, int patch) {

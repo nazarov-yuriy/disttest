@@ -9,16 +9,18 @@ class KernelSource implements Task {
     private static final basePath = "kernelSources"
     private static final gitUrl = "git@server.home:/home/git/linux-stable.git"
     String version
+    String commit
     int slot
     String tmpMountPoint
     String aufsMountPoint
 
-    KernelSource(String _version, int _slot) {
+    KernelSource(String _version, String _commit, int _slot) {
         version = _version
+        commit = _commit
         slot = _slot
     }
 
-    String getRepoPath() {
+    static String getRepoPath() {
         File repoDir = new File("kernelRepo/linux-stable")
         if (repoDir.isDirectory()) {
             return repoDir.getPath()
@@ -27,7 +29,7 @@ class KernelSource implements Task {
         process.consumeProcessOutput()
         process.waitFor()
         assert 0 == process.exitValue()
-
+        return repoDir.getPath()
     }
 
     String getSeedPath(String version) {
@@ -113,15 +115,13 @@ class KernelSource implements Task {
         assert 0 == process.exitValue()
         aufsMountPoint = aufsDir.getPath()
 
-        String gitTag = version.replace(/linux-/, "v")
-
-        Process gitResetMixed = new ProcessBuilder("git", "reset", "--mixed", gitTag).directory(aufsDir).start();
+        Process gitResetMixed = new ProcessBuilder("git", "reset", "--mixed", commit).directory(aufsDir).start();
         gitResetMixed.consumeProcessOutput()
         gitResetMixed.waitFor()
         assert 0 == gitResetMixed.exitValue()
         percentage = 80
 
-        Process gitResetHard = new ProcessBuilder("git", "reset", "--hard", gitTag).directory(aufsDir).start();
+        Process gitResetHard = new ProcessBuilder("git", "reset", "--hard", commit).directory(aufsDir).start();
         gitResetHard.consumeProcessOutput()
         gitResetHard.waitFor()
         assert 0 == gitResetHard.exitValue()
@@ -149,7 +149,7 @@ class KernelSource implements Task {
     }
 
     String getHash() {
-        return Utils.calcHash(version)
+        return Utils.calcHash(version+commit)
     }
 
     @Override

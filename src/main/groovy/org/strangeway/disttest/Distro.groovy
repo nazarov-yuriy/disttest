@@ -29,9 +29,13 @@ class Distro implements Task {
         running = false
         try {
             return process.getText().replace("\n", "").replace("\r", "");
-        } catch (all) {
+        } catch (ignored) {
             return "<KILLED>"
         }
+    }
+
+    void close() {
+        kernelBinary.close()
     }
 
     @Override

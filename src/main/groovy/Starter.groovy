@@ -7,7 +7,7 @@ import org.strangeway.disttest.Utils
 import java.util.concurrent.ConcurrentHashMap
 
 class Starter {
-    public static void main(String[] args) {
+    public static void threadedDemo(){
         KernelSourcePool kernelSourcePool = new KernelSourcePool()
         Initramfs initramfs = new Initramfs("hello.sh")
         initramfs.getArtifact() //Hack to prevent races in other threads
@@ -15,12 +15,13 @@ class Starter {
         List<Thread> threads = new ArrayList<>()
         ConcurrentHashMap<String, String> results = new ConcurrentHashMap<>()
         for (version in ["linux-2.6.32.71", "linux-3.18.28"]) {
-            KernelBinary kernelBinary = new KernelBinary(version, "acpi", kernelSourcePool)
+            KernelBinary kernelBinary = new KernelBinary(version, version.replace(/linux-/, "v"), "acpi", kernelSourcePool)
             Distro distro = new Distro(kernelBinary, initramfs)
             distros[version] = distro
             String ver = version
             threads.add(Thread.start {
                 results[ver] = distro.run()
+                distro.close()
             })
         }
         while (true) {
@@ -49,6 +50,10 @@ class Starter {
         results.each { k, v ->
             println String.format("%-20s %-100s", k, v)
         }
+    }
+
+    public static void main(String[] args) {
+        threadedDemo()
     }
 }
 
