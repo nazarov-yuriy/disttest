@@ -126,7 +126,7 @@ class KernelSource implements Task {
 
     void close() {
         if (aufsMountPoint != null) {
-            Process aufsProcess = new ProcessBuilder("umount", aufsMountPoint).start();
+            Process aufsProcess = new ProcessBuilder("umount", "-i", aufsMountPoint).start();
             aufsProcess.waitFor()
             assert 0 == aufsProcess.exitValue()
         }
