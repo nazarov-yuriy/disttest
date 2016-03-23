@@ -1,6 +1,7 @@
 import org.strangeway.disttest.Distro
 import org.strangeway.disttest.Initramfs
 import org.strangeway.disttest.KernelBinary
+import org.strangeway.disttest.KernelRepo
 import org.strangeway.disttest.KernelSourcePool
 import org.strangeway.disttest.Utils
 
@@ -52,8 +53,32 @@ class Starter {
         }
     }
 
+    public static void bisectDemo(){
+        KernelSourcePool kernelSourcePool = new KernelSourcePool()
+        Initramfs initramfs = new Initramfs("hello.sh")
+        initramfs.getArtifact()
+
+        String[] commits = KernelRepo.getVersionBetweenTags("v3.18", "v3.18.28")
+        int broken = 0
+        int working = commits.length-1
+        while(broken+1 != working){
+            int testIndex = (broken+working)/2
+            KernelBinary kernelBinary = new KernelBinary("linux-3.18", commits[testIndex], "acpi", kernelSourcePool)
+            println "Testing commit #$testIndex($broken..$working)"+commits[testIndex]
+            Distro distro = new Distro(kernelBinary, initramfs)
+            String res = distro.run()
+            distro.close()
+            println "Res: $res\n"
+            if(res == "<KILLED>"){
+                broken = testIndex
+            }else{
+                working = testIndex
+            }
+        }
+    }
+
     public static void main(String[] args) {
-        threadedDemo()
+        bisectDemo()
     }
 }
 

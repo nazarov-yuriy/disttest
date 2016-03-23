@@ -7,29 +7,18 @@ import java.util.regex.Matcher
 class KernelSource implements Task {
     private percentage = 0
     private static final basePath = "kernelSources"
-    private static final gitUrl = "git@server.home:/home/git/linux-stable.git"
     String version
     String commit
     int slot
     String tmpMountPoint
     String aufsMountPoint
+    KernelRepo kernelRepo
 
     KernelSource(String _version, String _commit, int _slot) {
         version = _version
         commit = _commit
         slot = _slot
-    }
-
-    static String getRepoPath() {
-        File repoDir = new File("kernelRepo/linux-stable")
-        if (repoDir.isDirectory()) {
-            return repoDir.getPath()
-        }
-        Process process = new ProcessBuilder("git", "clone", "--no-checkout", gitUrl).directory(new File("kernelRepo")).start();
-        process.consumeProcessOutput()
-        process.waitFor()
-        assert 0 == process.exitValue()
-        return repoDir.getPath()
+        kernelRepo = new KernelRepo()
     }
 
     String getSeedPath(String version) {
@@ -92,7 +81,7 @@ class KernelSource implements Task {
         }
         String seed = getSeedPath(version)
         percentage = 20
-        String repo = getRepoPath()
+        String repo = kernelRepo.getRepoPath()
         percentage = 40
         String tmp = getTmpPath()
         percentage = 60
