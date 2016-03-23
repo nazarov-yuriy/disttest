@@ -99,7 +99,7 @@ class KernelSource implements Task {
         if (!aufsDir.isDirectory()) {
             assert aufsDir.mkdir()
         }
-        Process process = new ProcessBuilder("mount", aufsDir.getPath()).start(); //Should be present in /etc/fstab
+        Process process = new ProcessBuilder("mount", "-i", aufsDir.getPath()).start(); //Should be present in /etc/fstab
         process.waitFor()
         assert 0 == process.exitValue()
         aufsMountPoint = aufsDir.getPath()
