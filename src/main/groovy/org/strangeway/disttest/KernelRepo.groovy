@@ -24,4 +24,36 @@ class KernelRepo {
         assert 0 == process.exitValue()
         return sout.tokenize("\n").reverse()
     }
+
+    static def byLastNumber = {a,b ->
+        def ma = a =~ /(\d+)$/
+        def mb = b =~ /(\d+)$/
+        ma[0][1] as int <=> mb[0][1] as int
+    }
+
+    static String[] getSubLevels(String patchLevel){
+        Process process = new ProcessBuilder("git", "tag").directory(new File(getRepoPath())).start();
+        StringBuilder sout = new StringBuilder()
+        StringBuilder serr = new StringBuilder()
+        process.consumeProcessOutput(sout, serr)
+        process.waitFor()
+        assert 0 == process.exitValue()
+        return [
+                sout.tokenize("\n").findAll({it =~ /^$patchLevel.\d+$/}).sort(byLastNumber)
+        ].flatten()
+    }
+
+    static String[] getPatchLevels(){
+        Process process = new ProcessBuilder("git", "tag").directory(new File(getRepoPath())).start();
+        StringBuilder sout = new StringBuilder()
+        StringBuilder serr = new StringBuilder()
+        process.consumeProcessOutput(sout, serr)
+        process.waitFor()
+        assert 0 == process.exitValue()
+        return [
+                sout.tokenize("\n").findAll({it =~ /^v2.6.3[2-9]+$/}).sort(byLastNumber),
+                sout.tokenize("\n").findAll({it =~ /^v3.\d+$/}).sort(byLastNumber),
+                sout.tokenize("\n").findAll({it =~ /^v4.\d+$/}).sort(byLastNumber)
+                ].flatten()
+    }
 }
