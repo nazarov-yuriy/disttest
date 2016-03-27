@@ -83,28 +83,34 @@ class Starter {
         Initramfs initramfs = new Initramfs("cve-2013-2094.sh")
         initramfs.getArtifact()
 
-        String[] commits = KernelRepo.getVersionBetweenTags("v3.0", "v3.0.101")
-        int broken = 0
-        int working = commits.length-1
-        while(broken+1 != working){
-            int testIndex = (broken+working)/2
-            KernelBinary kernelBinary = new KernelBinary("linux-3.0", commits[testIndex], "acpi_perf_sec", kernelSourcePool)
-            println "Testing commit #$testIndex($broken..$working)"+commits[testIndex]
-            Distro distro = new Distro(kernelBinary, initramfs)
-            String res = distro.run()
-            distro.close()
-            println "Res: $res\n"
-            String[] prevNext = KernelRepo.getPrevNextTag(commits[testIndex])
-            if(res == "uid=0(root) gid=0(root) groups=1(user)"){
-                broken = testIndex
-                results[ prevNext[0] ] = "FireBrick"
+        def versions = KernelRepo.getPatchLevels().collect({ [it, KernelRepo.getSubLevels(it)].flatten() })
+        def toTest = ["v3.0":0]
 
-            }else{
-                working = testIndex
-                results[ prevNext[1] ] = "LimeGreen"
+        versions.each {
+            if(toTest.containsKey(it[0])) {
+                String[] commits = KernelRepo.getVersionBetweenTags(it[0], it[-1])
+                int broken = 0
+                int working = commits.length - 1
+                while (broken + 1 != working) {
+                    int testIndex = (broken + working) / 2
+                    KernelBinary kernelBinary = new KernelBinary("linux-3.0", commits[testIndex], "acpi_perf_sec", kernelSourcePool)
+                    println "Testing commit #$testIndex($broken..$working)" + commits[testIndex]
+                    Distro distro = new Distro(kernelBinary, initramfs)
+                    String res = distro.run()
+                    distro.close()
+                    println "Res: $res\n"
+                    String[] prevNext = KernelRepo.getPrevNextTag(commits[testIndex])
+                    if (res == "uid=0(root) gid=0(root) groups=1(user)") {
+                        broken = testIndex
+                        results[prevNext[0]] = "FireBrick"
+
+                    } else {
+                        working = testIndex
+                        results[prevNext[1]] = "LimeGreen"
+                    }
+                }
             }
         }
-        def versions = KernelRepo.getPatchLevels().collect({ [it, KernelRepo.getSubLevels(it)].flatten() })
         Utils.renderReport(versions, results, "cve-2013-2094.svg")
     }
 
