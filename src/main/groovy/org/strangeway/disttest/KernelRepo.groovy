@@ -18,9 +18,9 @@ class KernelRepo {
     static String[] getVersionBetweenTags(String from, String to){
         Process process = new ProcessBuilder("git", "log", "--pretty=format:%H", "$from^..$to").directory(new File(getRepoPath())).start();
         StringBuilder sout = new StringBuilder()
-        StringBuilder serr = new StringBuilder()
-        process.consumeProcessOutput(sout, serr)
+        process.consumeProcessOutputStream(sout).join()
         process.waitFor()
+        process.consumeProcessOutputStream(sout).join() //Todo: add proper fix
         assert 0 == process.exitValue()
         return sout.tokenize("\n").reverse()
     }
@@ -55,5 +55,19 @@ class KernelRepo {
                 sout.tokenize("\n").findAll({it =~ /^v3.\d+$/}).sort(byLastNumber),
                 sout.tokenize("\n").findAll({it =~ /^v4.\d+$/}).sort(byLastNumber)
                 ].flatten()
+    }
+
+    static String[] getPrevNextTag(String commit){
+        Process processNext = new ProcessBuilder("git", "describe", "--abbrev=0", commit).directory(new File(getRepoPath())).start();
+        processNext.waitFor()
+        String next = processNext.getText().replace("\n", "").replace("\r", "")
+        assert 0 == processNext.exitValue()
+        assert next != ""
+        Process processPrev = new ProcessBuilder("git", "describe", "--abbrev=0", "$next^").directory(new File(getRepoPath())).start();
+        processPrev.waitFor()
+        String prev = processPrev.getText().replace("\n", "").replace("\r", "")
+        assert 0 == processPrev.exitValue()
+        assert prev != ""
+        return [prev, next]
     }
 }

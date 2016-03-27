@@ -78,6 +78,7 @@ class Starter {
     }
 
     public static void bisectSemtexDemo(){
+        Map<String, String> results = new HashMap<>()
         KernelSourcePool kernelSourcePool = new KernelSourcePool()
         Initramfs initramfs = new Initramfs("cve-2013-2094.sh")
         initramfs.getArtifact()
@@ -93,12 +94,18 @@ class Starter {
             String res = distro.run()
             distro.close()
             println "Res: $res\n"
+            String[] prevNext = KernelRepo.getPrevNextTag(commits[testIndex])
             if(res == "uid=0(root) gid=0(root) groups=1(user)"){
                 broken = testIndex
+                results[ prevNext[0] ] = "FireBrick"
+
             }else{
                 working = testIndex
+                results[ prevNext[1] ] = "LimeGreen"
             }
         }
+        def versions = KernelRepo.getPatchLevels().collect({ [it, KernelRepo.getSubLevels(it)].flatten() })
+        Utils.renderReport(versions, results, "cve-2013-2094.svg")
     }
 
     public static void main(String[] args) {
