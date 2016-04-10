@@ -24,6 +24,15 @@ class KernelSource implements Task {
     String getSeedPath(String version) {
         File srcArchive = new File("downloads/" + version + ".tar.xz")
         if (!srcArchive.exists()) {
+            for(i in 1..150){
+                if (new File("downloads/${version}.${i}.tar.xz").exists()) {
+                    version = "$version.$i"
+                    srcArchive = new File("downloads/" + version + ".tar.xz")
+                    break
+                }
+            }
+        }
+        if (!srcArchive.exists()) {
             String url = null
             Matcher v4 = version =~ /linux-4\..*/
             if (v4) {
@@ -58,7 +67,7 @@ class KernelSource implements Task {
         if (!srcDir.isDirectory()) {
             Process process = new ProcessBuilder("tar", "-C", basePath, "-xf", srcArchive.path).start();
             process.waitFor()
-            assert 0 == process.exitValue()
+            assert 0 == process.exitValue(), process.text+process.err
         }
         return srcDir.getPath()
     }

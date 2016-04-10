@@ -1,0 +1,11 @@
+--- a/arch/x86/vdso/Makefile	2016-04-10 11:25:17.379489896 +0400
++++ b/arch/x86/vdso/Makefile	2016-04-10 11:24:42.439491326 +0400
+@@ -25,7 +25,7 @@
+
+ export CPPFLAGS_vdso.lds += -P -C
+
+-VDSO_LDFLAGS_vdso.lds = -m elf_x86_64 -Wl,-soname=linux-vdso.so.1 \
++VDSO_LDFLAGS_vdso.lds = -m64 -Wl,-soname=linux-vdso.so.1 \
+ 		      	-Wl,-z,max-page-size=4096 -Wl,-z,common-page-size=4096
+
+ $(obj)/vdso.o: $(src)/vdso.S $(obj)/vdso.so

@@ -45,6 +45,13 @@ class KernelBinary implements Task {
                 process.waitFor()
             }
         }
+        if (new File(kernelSource.getPath() + "/arch/x86/vdso/Makefile").text.contains("-m elf_x86_64") ) {
+            Process process = new ProcessBuilder("patch", "-p1", "--batch").directory(new File(kernelSource.getPath())).start();
+            OutputStream stdin = process.getOutputStream();
+            stdin << new File("kernelPatches/m_elf_x86_64.patch").getBytes()
+            stdin.close()
+            process.waitFor()
+        }
 
         Process processOldConfig = new ProcessBuilder("make", "oldconfig").directory(new File(kernelSource.getPath())).start();
         processOldConfig.outputStream.close()
@@ -67,9 +74,12 @@ class KernelBinary implements Task {
             process = new ProcessBuilder("make", "-j9").directory(new File(kernelSource.getPath())).start();
         }
 
-        process.consumeProcessOutput()
+        StringBuilder sout = new StringBuilder()
+        StringBuilder serr = new StringBuilder()
+        process.consumeProcessOutput(sout, serr)
         process.waitFor()
-        assert 0 == process.exitValue()
+        process.consumeProcessOutput(sout, serr)
+        assert 0 == process.exitValue(), sout+serr
         Files.copy(Paths.get(kernelSource.path + "/arch/x86_64/boot/bzImage"), Paths.get(artifact.path), REPLACE_EXISTING)
         percentage = 100
         return artifact

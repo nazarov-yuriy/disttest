@@ -114,8 +114,25 @@ class Starter {
         Utils.renderReport(versions, results, "cve-2013-2094.svg")
     }
 
+    public static void buildDemo(){
+        def versions = KernelRepo.getPatchLevels().collect({ [it, KernelRepo.getSubLevels(it)].flatten() })
+        KernelSourcePool kernelSourcePool = new KernelSourcePool()
+        versions.each {
+            String version = it[0]
+            println "Building $version"
+            try {
+                KernelBinary kernelBinary = new KernelBinary(version.replace(/v/, "linux-"), version, "acpi", kernelSourcePool)
+                println kernelBinary.getArtifact()
+                kernelBinary.close()
+            }
+            catch (e){
+                println e
+            }
+        }
+    }
+
     public static void main(String[] args) {
-        bisectSemtexDemo()
+        buildDemo()
     }
 }
 
