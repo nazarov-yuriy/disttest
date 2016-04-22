@@ -1,16 +1,18 @@
 package org.strangeway.disttest
 
+import groovy.transform.CompileStatic
+
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING
 
-class KernelBinary implements Task {
+@CompileStatic
+class KernelBinary {
     KernelSource kernelSource
     KernelConfig kernelConfig
     KernelSourcePool kernelSourcePool
-    private volatile long percentage = 0
     private boolean artifactExists = false
 
     KernelBinary(String version, String commit, String configName, KernelSourcePool _kernelSourcePool) {
@@ -23,10 +25,8 @@ class KernelBinary implements Task {
     }
 
     File getArtifact() {
-        percentage = 0
         File artifact = new File("artifacts/" + getHash() + ".bzImage")
         if (artifact.exists()) {
-            percentage = 100
             return artifact;
         }
 
@@ -60,7 +60,6 @@ class KernelBinary implements Task {
         processOldConfig.consumeProcessOutput(new StringBuilder(), new StringBuilder())
         processOldConfig.waitFor()
         assert 0 == processOldConfig.exitValue()
-        percentage = 5
 
         Process process
         if ((new File(kernelSource.getPath() + "/include/linux/compiler-gcc4.h").exists()) &&
@@ -83,7 +82,6 @@ class KernelBinary implements Task {
         process.consumeProcessOutput(sout, serr)
         assert 0 == process.exitValue(), sout+serr
         Files.copy(Paths.get(kernelSource.path + "/arch/x86_64/boot/bzImage"), Paths.get(artifact.path), REPLACE_EXISTING)
-        percentage = 100
         return artifact
     }
 
@@ -93,20 +91,5 @@ class KernelBinary implements Task {
 
     String getHash() {
         return Utils.calcHash(kernelSource.getHash() + kernelConfig.getHash())
-    }
-
-    @Override
-    String getDescription() {
-        return "Build Kernel"
-    }
-
-    @Override
-    Task[] getSubTasks() {
-        return artifactExists ? [] : [kernelSource]
-    }
-
-    @Override
-    long getPercentage() {
-        return percentage
     }
 }

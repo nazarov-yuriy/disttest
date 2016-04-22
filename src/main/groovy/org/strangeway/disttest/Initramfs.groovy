@@ -1,5 +1,6 @@
 package org.strangeway.disttest
 
+import groovy.transform.CompileStatic
 import org.apache.commons.compress.archivers.cpio.CpioArchiveEntry
 import org.apache.commons.compress.archivers.cpio.CpioArchiveOutputStream
 import org.apache.commons.compress.archivers.cpio.CpioConstants
@@ -8,7 +9,8 @@ import org.apache.commons.compress.compressors.gzip.GzipParameters
 
 import java.util.zip.Deflater
 
-class Initramfs implements Task {
+@CompileStatic
+class Initramfs {
     private volatile percentage = 0
     private boolean artifactExists = false
     ToolsBinary toolsBinary
@@ -89,20 +91,5 @@ class Initramfs implements Task {
 
     String getHash() {
         return Utils.calcHash(toolsBinary.getHash() + Utils.calcHash(new File(testScriptPath).bytes))
-    }
-
-    @Override
-    String getDescription() {
-        return "Pack Initramfs"
-    }
-
-    @Override
-    Task[] getSubTasks() {
-        return artifactExists ? [] : [toolsBinary]
-    }
-
-    @Override
-    long getPercentage() {
-        return percentage
     }
 }

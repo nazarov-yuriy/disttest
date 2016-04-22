@@ -1,12 +1,14 @@
 package org.strangeway.disttest
 
+import groovy.transform.CompileStatic
+
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.regex.Matcher
 
-class KernelSource implements Task {
-    private percentage = 0
-    private static final basePath = "kernelSources"
+@CompileStatic
+class KernelSource {
+    private static final String basePath = "kernelSources"
     String version
     String commit
     int slot
@@ -57,7 +59,6 @@ class KernelSource implements Task {
             while ((len = urlStream.read(buf)) != -1) {
                 fileStream.write(buf, 0, len)
                 downloadedLen += len
-                percentage = 20L * downloadedLen / totalLen
             }
             fileStream.close()
             urlStream.close()
@@ -85,15 +86,11 @@ class KernelSource implements Task {
 
     String getPath() {
         if (aufsMountPoint != null) {
-            percentage = 100
             return aufsMountPoint
         }
         String seed = getSeedPath(version)
-        percentage = 20
         String repo = kernelRepo.getRepoPath()
-        percentage = 40
         String tmp = getTmpPath()
-        percentage = 60
 
         Files.deleteIfExists(Paths.get("mounts/repo$slot"))
         Files.createSymbolicLink(Paths.get("mounts/repo$slot"), Paths.get(new File(repo).getCanonicalPath()))
@@ -117,7 +114,6 @@ class KernelSource implements Task {
         gitResetMixed.consumeProcessOutput()
         gitResetMixed.waitFor()
         assert 0 == gitResetMixed.exitValue()
-        percentage = 80
 
         Process gitResetHard = new ProcessBuilder("git", "reset", "--hard", commit).directory(aufsDir).start();
         gitResetHard.consumeProcessOutput()
@@ -129,7 +125,6 @@ class KernelSource implements Task {
         gitClean.waitFor()
         assert 0 == gitClean.exitValue()
 
-        percentage = 100
         return aufsMountPoint
     }
 
@@ -148,20 +143,5 @@ class KernelSource implements Task {
 
     String getHash() {
         return Utils.calcHash(version+commit)
-    }
-
-    @Override
-    String getDescription() {
-        return "Download Kernel"
-    }
-
-    @Override
-    Task[] getSubTasks() {
-        return new Task[0]
-    }
-
-    @Override
-    long getPercentage() {
-        return percentage
     }
 }

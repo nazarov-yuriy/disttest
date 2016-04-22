@@ -1,9 +1,9 @@
 package org.strangeway.disttest
 
-class Distro implements Task {
-    volatile long startedAt = 0
-    volatile boolean running = false
+import groovy.transform.CompileStatic
 
+@CompileStatic
+class Distro {
     KernelBinary kernelBinary
     Initramfs initramfs
 
@@ -22,11 +22,8 @@ class Distro implements Task {
                 "-device", "isa-serial,chardev=charserial0,id=serial0",
                 "-nographic", "-nodefconfig", "-nodefaults"
         ).start()
-        running = true
-        startedAt = System.currentTimeMillis()
         process.waitForOrKill(5000) //ToDo: make value at least configurable
         assert 0 == process.exitValue()
-        running = false
         try {
             return process.getText().replace("\n", "").replace("\r", "");
         } catch (ignored) {
@@ -36,28 +33,5 @@ class Distro implements Task {
 
     void close() {
         kernelBinary.close()
-    }
-
-    @Override
-    String getDescription() {
-        return "Running"
-    }
-
-    @Override
-    Task[] getSubTasks() {
-        return [kernelBinary, initramfs]
-    }
-
-    @Override
-    long getPercentage() {
-        if (running) {
-            return 100.0 * (System.currentTimeMillis() - startedAt) / 5000.0
-        } else {
-            if (startedAt) {
-                return 100
-            } else {
-                return 0
-            }
-        }
     }
 }

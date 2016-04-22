@@ -1,15 +1,18 @@
 package org.strangeway.disttest
 
+import groovy.transform.CompileStatic
+
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING
 
-class ToolsBinary implements Task {
+@CompileStatic
+class ToolsBinary {
     private long percentage = 0
     ToolsSource toolsSource
-    public static final basePath = "toolsConfigs"
+    public static final String basePath = "toolsConfigs"
 
     ToolsBinary(String version) {
         toolsSource = new ToolsSource(version)
@@ -31,20 +34,5 @@ class ToolsBinary implements Task {
 
     String getHash() {
         return Utils.calcHash(toolsSource.getHash())
-    }
-
-    @Override
-    String getDescription() {
-        return "Build Tools"
-    }
-
-    @Override
-    Task[] getSubTasks() {
-        return [toolsSource]
-    }
-
-    @Override
-    long getPercentage() {
-        return percentage
     }
 }

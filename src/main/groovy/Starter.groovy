@@ -1,3 +1,4 @@
+import groovy.transform.CompileStatic
 import org.strangeway.disttest.Distro
 import org.strangeway.disttest.Initramfs
 import org.strangeway.disttest.KernelBinary
@@ -7,6 +8,7 @@ import org.strangeway.disttest.Utils
 
 import java.util.concurrent.ConcurrentHashMap
 
+@CompileStatic
 class Starter {
     public static void threadedDemo() {
         KernelSourcePool kernelSourcePool = new KernelSourcePool()
@@ -38,7 +40,7 @@ class Starter {
                     println String.format("%-20s %-100s", k, results[k])
                     //ToDo: use more reliable method to clear terminal
                 } else {
-                    println String.format("%-20s %-100s", k, Utils.renderProgress(v))
+                    println String.format("%-20s %-100s", k, "In progress")
                 }
             }
             print String.format("%c[%dA", 0x1B, distros.size());
@@ -62,7 +64,7 @@ class Starter {
         int broken = 0
         int working = commits.length - 1
         while (broken + 1 != working) {
-            int testIndex = (broken + working) / 2
+            int testIndex = ((broken + working) / 2) as int
             KernelBinary kernelBinary = new KernelBinary("linux-3.18", commits[testIndex], "acpi", kernelSourcePool)
             println "Testing commit #$testIndex($broken..$working)" + commits[testIndex]
             Distro distro = new Distro(kernelBinary, initramfs)
@@ -94,54 +96,45 @@ class Starter {
         Initramfs initramfs = new Initramfs("cve-2013-2094.sh")
         initramfs.getArtifact()
 
-        def versions = KernelRepo.getPatchLevels().collect({ [it, KernelRepo.getSubLevels(it)].flatten() })
+        List<List<String>> versions = KernelRepo.getPatchLevels().collect({ String it ->
+            [it, KernelRepo.getSubLevels(it)].flatten() as List<String>
+        })
         def toTest = ["v2.6.37": 0, "v2.6.38": 0, "v2.6.39": 0, "v3.0": 0, "v3.1": 0, "v3.2": 0, "v3.3": 0, "v3.4": 0, "v3.5": 0, "v3.6": 0, "v3.7": 0, "v3.8": 0]
         //def toTest = ["v3.10": 0]
 
-        versions.each {
-            String from_version = it[0]
-            String to_version = it[-1]
-            if (toTest.containsKey(it[0])) {
-                String[] commits = KernelRepo.getVersionBetweenTags(from_version, to_version)
-                int broken = 0
-                int working = commits.length - 1
-                if (semtexOneVersionVulnerable(from_version, from_version, initramfs, kernelSourcePool)) {
-                    results[from_version] = "FireBrick"
-                } else {
-                    results[from_version] = "LimeGreen"
-                }
-                if (semtexOneVersionVulnerable(from_version, to_version, initramfs, kernelSourcePool)) {
-                    results[to_version] = "FireBrick"
-                } else {
-                    results[to_version] = "LimeGreen"
-                }
-                if (results[from_version] == "FireBrick" && results[to_version] == "LimeGreen") {
-                    while (broken + 1 != working) {
-                        int testIndex = (broken + working) / 2
-                        println "Testing commit #$testIndex($broken..$working)" + commits[testIndex]
-                        String[] prevNext = KernelRepo.getPrevNextTag(commits[testIndex])
-                        if (semtexOneVersionVulnerable(from_version, commits[testIndex], initramfs, kernelSourcePool)) {
-                            results[prevNext[0]] = "FireBrick"
-                            broken = testIndex
-                        } else {
-                            results[prevNext[1]] = "LimeGreen"
-                            working = testIndex
-                        }
-                    }
-                }
+        //versions.each {
+        String[] it = KernelRepo.getPatchLevels()
+        println(it)
+        String from_version = it[5]
+        String to_version = it[-1]
+        if (toTest.containsKey(it[0]) || true) {
+            String[] commits = KernelRepo.getVersionBetweenTags(from_version, to_version)
+            println "There is " + commits.length + " commits between $from_version and $to_version"
+            int broken = 5
+            int working = commits.length - 1
+            println "Testing $from_version"
+            if (semtexOneVersionVulnerable(from_version, from_version, initramfs, kernelSourcePool)) {
+                results[from_version] = "FireBrick"
+            } else {
+                results[from_version] = "LimeGreen"
             }
-        }
-        versions.each {
-            String[] patchLevels = it
-            if (results.containsKey(patchLevels[0])) {
-                boolean prevFailed = results[patchLevels[0]] == "FireBrick"
-                patchLevels.each { patchLevel ->
-                    if (results.containsKey(patchLevel)) {
-                        if (results[patchLevel] == "LimeGreen") {
-                            prevFailed = false
-                        }
+            println "Testing $to_version"
+            if (semtexOneVersionVulnerable(from_version, to_version, initramfs, kernelSourcePool)) {
+                results[to_version] = "FireBrick"
+            } else {
+                results[to_version] = "LimeGreen"
+            }
+            if (results[from_version] == "FireBrick" && results[to_version] == "LimeGreen") {
+                while (broken + 1 != working) {
+                    int testIndex = ((broken + working) / 2) as int
+                    println "Testing commit #$testIndex($broken..$working)" + commits[testIndex]
+                    String[] prevNext = KernelRepo.getPrevNextTag(commits[testIndex])
+                    if (semtexOneVersionVulnerable(from_version, commits[testIndex], initramfs, kernelSourcePool)) {
+                        results[prevNext[0]] = "FireBrick"
+                        broken = testIndex
                     } else {
-                        results[patchLevel] = prevFailed ? "LightCoral" : "PaleGreen"
+                        results[prevNext[1]] = "LimeGreen"
+                        working = testIndex
                     }
                 }
             }
@@ -150,7 +143,9 @@ class Starter {
     }
 
     public static void buildDemo() {
-        def versions = KernelRepo.getPatchLevels().collect({ [it, KernelRepo.getSubLevels(it)].flatten() })
+        def versions = KernelRepo.getPatchLevels().collect({ String it ->
+            [it, KernelRepo.getSubLevels(it)].flatten()
+        })
         KernelSourcePool kernelSourcePool = new KernelSourcePool()
         versions.each {
             String version = it[0]

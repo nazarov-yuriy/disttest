@@ -1,5 +1,8 @@
 package org.strangeway.disttest
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 class KernelSourcePool {
     volatile boolean[] slotsAvailability = [true, true]
 

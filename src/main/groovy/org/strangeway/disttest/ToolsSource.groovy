@@ -1,7 +1,10 @@
 package org.strangeway.disttest
 
-class ToolsSource implements Task {
-    private static final basePath = "toolsSources"
+import groovy.transform.CompileStatic
+
+@CompileStatic
+class ToolsSource {
+    private static final String basePath = "toolsSources"
     String version
     long percentage = 0
 
@@ -29,20 +32,5 @@ class ToolsSource implements Task {
 
     String getHash() {
         return Utils.calcHash(version)
-    }
-
-    @Override
-    String getDescription() {
-        return "Download Tools"
-    }
-
-    @Override
-    Task[] getSubTasks() {
-        return new Task[0]
-    }
-
-    @Override
-    long getPercentage() {
-        return percentage
     }
 }
