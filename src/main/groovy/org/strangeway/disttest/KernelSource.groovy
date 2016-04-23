@@ -24,9 +24,18 @@ class KernelSource {
     }
 
     String getSeedPath(String version) {
+        File srcDir = new File("$basePath/$version")
+        if (!srcDir.isDirectory()) {
+            for (i in 1..150) {
+                srcDir = new File("$basePath/$version.$i")
+                if (srcDir.isDirectory()) {
+                    return srcDir.getPath()
+                }
+            }
+        }
         File srcArchive = new File("downloads/" + version + ".tar.xz")
         if (!srcArchive.exists()) {
-            for(i in 1..150){
+            for (i in 1..150) {
                 if (new File("downloads/${version}.${i}.tar.xz").exists()) {
                     version = "$version.$i"
                     srcArchive = new File("downloads/" + version + ".tar.xz")
@@ -34,43 +43,14 @@ class KernelSource {
                 }
             }
         }
-        if (!srcArchive.exists()) {
-            String url = null
-            Matcher v4 = version =~ /linux-4\..*/
-            if (v4) {
-                url = "https://cdn.kernel.org/pub/linux/kernel/v4.x/" + version + ".tar.xz"
-            }
-            Matcher v3 = version =~ /linux-3\..*/
-            if (v3) {
-                url = "https://cdn.kernel.org/pub/linux/kernel/v3.x/" + version + ".tar.xz"
-            }
-            Matcher v26 = version =~ /linux-2\..*/
-            if (v26) {
-                url = "https://cdn.kernel.org/pub/linux/kernel/v2.6/longterm/v2.6.32/" + version + ".tar.xz"
-            }
-            assert url
-
-            long totalLen = new URL(url).openConnection().getContentLength();
-            long downloadedLen = 0
-            BufferedOutputStream fileStream = srcArchive.newOutputStream()
-            InputStream urlStream = new URL(url).openStream();
-            byte[] buf = new byte[65536]
-            int len
-            while ((len = urlStream.read(buf)) != -1) {
-                fileStream.write(buf, 0, len)
-                downloadedLen += len
-            }
-            fileStream.close()
-            urlStream.close()
-        }
-
-        File srcDir = new File("$basePath/$version")
-        if (!srcDir.isDirectory()) {
+        if (srcArchive.exists()) {
+            srcDir = new File("$basePath/$version")
             Process process = new ProcessBuilder("tar", "-C", basePath, "-xf", srcArchive.path).start();
             process.waitFor()
-            assert 0 == process.exitValue(), process.text+process.err
+            assert 0 == process.exitValue(), process.text + process.err
+            return srcDir.getPath()
         }
-        return srcDir.getPath()
+        return (new File("$basePath/empty")).getPath()
     }
 
     String getTmpPath() {
@@ -105,7 +85,8 @@ class KernelSource {
         if (!aufsDir.isDirectory()) {
             assert aufsDir.mkdir()
         }
-        Process process = new ProcessBuilder("mount", "-i", aufsDir.getPath()).start(); //Should be present in /etc/fstab
+        Process process = new ProcessBuilder("mount", "-i", aufsDir.getPath()).start();
+        //Should be present in /etc/fstab
         process.waitFor()
         assert 0 == process.exitValue()
         aufsMountPoint = aufsDir.getPath()
@@ -142,6 +123,6 @@ class KernelSource {
     }
 
     String getHash() {
-        return Utils.calcHash(version+commit)
+        return Utils.calcHash(version + commit)
     }
 }

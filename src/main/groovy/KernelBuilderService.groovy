@@ -16,7 +16,9 @@ class KernelBuilderService {
         Map<Tuple2<String,String>, Thread> versions = [:] //ToDo: fix references leak
 
         void createTask(String config, String version, HttpServletResponse response) {
-            assert !versions.containsKey(new Tuple2<>(config, version)), "Already created"
+            if(versions.containsKey(new Tuple2<>(config, version))){
+                assert !versions[new Tuple2<>(config, version)].alive, "Already created"
+            }
             versions[new Tuple2<>(config, version)] = Thread.start {
                 KernelSourcePool kernelSourcePool = new KernelSourcePool()
                 KernelBinary kernelBinary = new KernelBinary(version.replace(/v/, "linux-"), version, config, kernelSourcePool)
