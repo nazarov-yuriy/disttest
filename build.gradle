@@ -30,4 +30,5 @@ repositories {
 dependencies {
     compile 'org.codehaus.groovy:groovy-all:2.4.6'
     compile 'org.apache.commons:commons-compress:1.10'
+    compile 'org.eclipse.jetty.aggregate:jetty-all:7.6.15.v20140411'
 }

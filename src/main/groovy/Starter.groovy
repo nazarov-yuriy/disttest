@@ -29,7 +29,7 @@ class Starter {
         }
         while (true) {
             boolean needBreak = true
-            threads.each { t ->
+            threads.each { Thread t ->
                 if (t.alive) {
                     needBreak = false
                 }
@@ -162,7 +162,11 @@ class Starter {
     }
 
     public static void main(String[] args) {
-        bisectSemtexDemo()
+        //bisectSemtexDemo()
+        KernelSourcePool kernelSourcePool = new KernelSourcePool()
+        def version = "v2.6.32"
+        KernelBinary kernelBinary = new KernelBinary(version.replace(/v/, "linux-"), version, "acpi", kernelSourcePool)
+        println kernelBinary.getArtifact()
     }
 }
 

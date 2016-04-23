@@ -76,7 +76,7 @@ class KernelSource {
     String getTmpPath() {
         File tmpDir = new File("mounts/tmpMP$slot")
         if (!tmpDir.isDirectory()) {
-            assert tmpDir.mkdir()
+            assert tmpDir.mkdir() || (new File("mounts").mkdir() && tmpDir.mkdir())
         }
         Process process = new ProcessBuilder("mount", tmpDir.getPath()).start(); //Should be present in /etc/fstab
         process.waitFor()

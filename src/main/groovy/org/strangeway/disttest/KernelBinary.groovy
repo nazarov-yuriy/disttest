@@ -24,6 +24,11 @@ class KernelBinary {
         artifactExists = new File("artifacts/" + getHash() + ".bzImage").exists()
     }
 
+    boolean isArtifactPresent(){
+        File artifact = new File("artifacts/" + getHash() + ".bzImage")
+        return artifact.exists()
+    }
+
     File getArtifact() {
         File artifact = new File("artifacts/" + getHash() + ".bzImage")
         if (artifact.exists()) {

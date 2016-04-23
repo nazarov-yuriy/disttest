@@ -1,10 +1,8 @@
 package org.strangeway.disttest
 
-import groovy.transform.CompileStatic
-
 import java.util.regex.Matcher
 
-@CompileStatic
+
 class KernelRepo {
     private static final String gitUrl = "git@server.home:/home/git/linux-stable.git"
     private static Comparator<String> byLastNumber = new Comparator<String>() {
@@ -47,7 +45,7 @@ class KernelRepo {
         process.consumeProcessOutput(sout, serr)
         process.waitFor()
         assert 0 == process.exitValue()
-        List<String> subLevels = sout.tokenize("\n").findAll({it =~ /^$patchLevel.\d+$/})
+        List<String> subLevels = sout.tokenize("\n").findAll({it =~ /^$patchLevel.\d+$/}).collect({it as String})
         subLevels.sort(byLastNumber)
         subLevels
     }
