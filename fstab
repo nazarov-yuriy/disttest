@@ -1,0 +1,4 @@
+none /root/mounts/tmpMP0 tmpfs noauto,user,exec 0 0
+none /root/mounts/tmpMP1 tmpfs noauto,user,exec 0 0
+none /root/mounts/aufs0 aufs noauto,br:/root/mounts/tmp0:/root/mounts/seed0=ro:/root/mounts/repo0=ro,user,exec 0 0
+none /root/mounts/aufs1 aufs noauto,br:/root/mounts/tmp1:/root/mounts/seed1=ro:/root/mounts/repo1=ro,user,exec 0 0
